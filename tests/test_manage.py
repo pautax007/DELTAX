@@ -205,5 +205,134 @@ check("E102 a corrupt peaks file reads as empty rather than raising",
 check("E102 writing to an unwritable path does not raise",
       update_peaks([_a], "/nonexistent-dir-e102/peaks.json") is not None)
 
+print("\n── E119: exits are priced from the SUBMITTED credit, not the leg allocation ──")
+# Alpaca paper allocates per-leg fill prices that do not sum to the multi-leg
+# net. 3 Sep: UNH 390/380 put submitted and filled at a 1.83 credit limit, legs
+# report 3.70 and 1.93 (1.77); QCOM 175/180 call submitted at 0.86, legs report
+# 1.61 and 1.00 (0.61). The E118 healer rested the QCOM exit at 0.31 instead of
+# 0.43, and the trail's `captured` was measured against a credit 29% too small.
+# A credit-limit order cannot fill below its limit: the submitted credit is the
+# floor of the true fill and the only number actually agreed with the broker.
+from deltax.manage import (submitted_credits, entry_credit_for,
+                           CREDIT_SOURCE_SUBMITTED, CREDIT_SOURCE_BASIS)
+UNH_S, UNH_L = "UNH260918P00390000", "UNH260918P00380000"
+QCOM_S, QCOM_L = "QCOM260911C00175000", "QCOM260911C00180000"
+
+def _submit(seq, short, long, limit, result="SUBMITTED", action="submit",
+            order_id="oid", short_intent="sell_to_open", long_intent="buy_to_open"):
+    """A ledger entry shaped exactly like Ledger.record_raw(execute.submit(...))."""
+    return {"kind": "event", "seq": seq, "ts_utc": "2026-09-03T16:50:34+00:00",
+            "event": {"action": action, "qty": 6, "limit_price": limit,
+                      "legs": [{"symbol": short, "side": "sell", "ratio_qty": "1",
+                                "position_intent": short_intent},
+                               {"symbol": long, "side": "buy", "ratio_qty": "1",
+                                "position_intent": long_intent}],
+                      "dry_run": False, "result": result, "order_id": order_id}}
+
+_ledger = [
+    {"kind": "event", "seq": 1, "event": {"action": "reconcile"}},        # noise
+    {"seq": 2, "symbol": "SPY", "decision": "REFUSE", "gates": []},         # a decision, not an event
+    _submit(4506, UNH_S, UNH_L, 1.83, order_id="4a1ee7c2"),
+    _submit(4573, QCOM_S, QCOM_L, 0.86, order_id="ad3648fe"),
+    # things that must NOT count as evidence of a fill:
+    _submit(4580, "SPY260908P00770000", "SPY260908P00760000", 1.36,
+            result="DRY_RUN — not submitted"),                              # dry run
+    _submit(4581, "C260918P00135000", "C260918P00130000", 1.04,
+            result="FAILED — ExecutionRefused"),                            # refused
+    _submit(4582, "TQQQ260911P00070000", "TQQQ260911P00067000", 0.40,
+            action="submit_close", short_intent="buy_to_close",
+            long_intent="sell_to_close"),                                   # a close
+    # a DEBIT call vertical (the E58 catalyst book): sells the FARTHER strike
+    _submit(4583, "USO260918C00090000", "USO260918C00085000", 1.20),
+]
+_subm = submitted_credits(_ledger)
+
+# (a) the submitted credit wins when present
+_c, _src, _det = entry_credit_for(UNH_S, 3.70 - 1.93, _subm)
+check("E119 (a) UNH: the submitted 1.83 wins over the legs' 1.77",
+      abs(_c - 1.83) < 1e-9, f"{_c} {_src}")
+check("E119 (a) and the source says so", _src == CREDIT_SOURCE_SUBMITTED, _src)
+check("E119 (a) the detail carries BOTH numbers so the gap is visible",
+      abs(_det["cost_basis_credit"] - 1.77) < 1e-9 and abs(_det["submitted_limit"] - 1.83) < 1e-9,
+      str(_det))
+check("E119 (a) and the order it came from", _det["order_id"] == "4a1ee7c2", str(_det))
+_c, _src, _ = entry_credit_for(QCOM_S, 1.61 - 1.00, _subm)
+check("E119 (a) QCOM: 0.86, not 0.61", abs(_c - 0.86) < 1e-9, str(_c))
+check("E119 (a) so the healed exit rests at 0.43, not 0.31",
+      exit_limit(_c) == 0.43 and exit_limit(1.61 - 1.00) == 0.31,
+      f"{exit_limit(_c)} vs {exit_limit(0.61)}")
+# the trail: QCOM marked 0.70 is 18.6% captured against 0.86 (armed) and
+# -14.8% against 0.61 (never arms). This is the "arms late" consequence.
+_right = Managed(QCOM_S, 12, 0.86, 0.70, 8, entry_credit_source=_src)
+_wrong = Managed(QCOM_S, 12, 0.61, 0.70, 8)
+check("E119 (a) the trail ARMS on the real credit",
+      _right.captured is not None and _right.captured >= TRAIL_ARM_AT,
+      f"captured={_right.captured}")
+check("E119 (a) and could never arm on the allocated one",
+      _wrong.captured is not None and _wrong.captured < 0, f"captured={_wrong.captured}")
+
+# (b) the fallback is recorded as such, never silently
+_c, _src, _det = entry_credit_for("MSFT260918P00500000", 2.10, _subm)
+check("E119 (b) no submit record: cost basis is used", abs(_c - 2.10) < 1e-9, str(_c))
+check("E119 (b) and the source names it", _src == CREDIT_SOURCE_BASIS, _src)
+check("E119 (b) and the detail says why in words",
+      "no SUBMITTED open" in _det.get("note", ""), str(_det))
+check("E119 (b) the two sources are distinguishable strings",
+      CREDIT_SOURCE_SUBMITTED != CREDIT_SOURCE_BASIS
+      and isinstance(CREDIT_SOURCE_BASIS, str) and CREDIT_SOURCE_BASIS)
+_mb = Managed("MSFT260918P00500000", 1, _c, 1.0, 8, entry_credit_source=_src)
+check("E119 (b) the Managed record carries the source",
+      _mb.entry_credit_source == CREDIT_SOURCE_BASIS, _mb.entry_credit_source)
+check("E119 (b) a Managed built without one says 'unspecified', not nothing",
+      Managed("X", 1, 2.0, 1.0, 7).entry_credit_source == "unspecified",
+      Managed("X", 1, 2.0, 1.0, 7).entry_credit_source)
+_led = L(); manage([_mb], ledger=_led, dry_run=True)          # 52% captured -> closes
+check("E119 (b) the close record names the credit AND its source",
+      _led.rows and _led.rows[0]["entry_credit_source"] == CREDIT_SOURCE_BASIS
+      and abs(_led.rows[0]["entry_credit"] - 2.10) < 1e-9, str(_led.rows[:1]))
+_led = L(); place_exit(legs, 7, 2.30, ledger=_led, dry_run=True,
+                       entry_credit_source=CREDIT_SOURCE_SUBMITTED)
+check("E119 (b) place_exit records the source it was given",
+      _led.rows[0]["entry_credit_source"] == CREDIT_SOURCE_SUBMITTED, str(_led.rows[0]))
+_led = L(); place_exit(legs, 7, 2.30, ledger=_led, dry_run=True)
+check("E119 (b) place_exit without a source records 'unspecified'",
+      _led.rows[0]["entry_credit_source"] == "unspecified", str(_led.rows[0]))
+
+# what is NOT evidence of a fill
+check("E119 a dry run is not a fill", "SPY260908P00770000" not in _subm, str(_subm.keys()))
+check("E119 a refused order is not a fill", "C260918P00135000" not in _subm)
+check("E119 a CLOSING order is not an entry", "TQQQ260911P00070000" not in _subm)
+check("E119 a DEBIT vertical's limit is never read as a credit",
+      "USO260918C00090000" not in _subm, str(_subm.keys()))
+check("E119 exactly the two real entries were kept",
+      set(_subm) == {UNH_S, QCOM_S}, str(sorted(_subm)))
+# latest wins: a structure re-opened after a close is priced from ITS entry
+_two = submitted_credits([_submit(20, UNH_S, UNH_L, 1.83), _submit(10, UNH_S, UNH_L, 1.50)])
+check("E119 the latest SUBMITTED record wins, whatever the file order",
+      abs(_two[UNH_S]["credit"] - 1.83) < 1e-9, str(_two))
+# a four-leg condor's limit is the whole structure's credit, not one side's
+_condor = _submit(30, UNH_S, UNH_L, 3.00)
+_condor["event"]["legs"] += [{"symbol": "UNH260918C00420000", "position_intent": "sell_to_open"},
+                             {"symbol": "UNH260918C00430000", "position_intent": "buy_to_open"}]
+check("E119 a four-leg record is not attributed to one side", submitted_credits([_condor]) == {})
+# malformed records are not evidence and do not raise
+_bad = [None, {"kind": "event"}, {"kind": "event", "event": None},
+        {"kind": "event", "seq": 1, "event": {"action": "submit", "result": "SUBMITTED",
+                                              "limit_price": "n/a", "legs": []}},
+        {"kind": "event", "seq": 2, "event": {"action": "submit", "result": "SUBMITTED",
+                                              "limit_price": 1.0, "legs": [{"symbol": "??"}, 3]}},
+        {"kind": "event", "seq": 3, "event": {"action": "submit", "result": "SUBMITTED",
+                                              "limit_price": -1.0,
+                                              "legs": _submit(0, UNH_S, UNH_L, 1)["event"]["legs"]}}]
+check("E119 malformed or non-positive records are skipped, never raised on",
+      submitted_credits(_bad) == {} and submitted_credits(None) == {})
+check("E119 an empty ledger falls back cleanly",
+      entry_credit_for(UNH_S, 1.77, {})[1] == CREDIT_SOURCE_BASIS
+      and entry_credit_for(UNH_S, 1.77, None)[1] == CREDIT_SOURCE_BASIS)
+# no threshold moved
+check("E119 changes no threshold",
+      TAKE_PROFIT_FRACTION == 0.50 and abs(TRAIL_ARM_AT - 0.15) < 1e-9
+      and abs(TRAIL_GIVE_BACK - 0.10) < 1e-9 and TIME_STOP_DTE == 1)
+
 print(f"\n{'='*52}\n  {passed} passed, {failed} failed\n{'='*52}")
 sys.exit(1 if failed else 0)

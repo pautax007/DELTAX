@@ -377,5 +377,42 @@ check("E118 it honours dry_run", "dry_run=dry_run" in _e118)
 check("E118 it runs after the resting-exit lookup is defined",
       _run_src.index("def _resting_exit") < _run_src.index("# E118:"))
 
+print("\n── E119: the sweep prices exits from the SUBMITTED credit ──")
+# The broker's per-leg avg_entry_price does not sum to the multi-leg net that
+# filled (UNH: 1.83 submitted, legs say 1.77; QCOM: 0.86 submitted, legs say
+# 0.61). `credit = se - le` fed the E118 healer and the E102 trail a number
+# nobody submitted. The ledger's own SUBMITTED record is the floor of the true
+# fill and must win; the fallback must be named, never silent.
+_run_src = open(os.path.join(os.path.dirname(__file__), "..", "deltax", "run.py")).read()
+_sweep = _run_src.split("_peaks = _load_peaks()")[1].split("if live:")[0]
+check("E119 the raw leg subtraction is no longer the credit",
+      "\n            credit = se - le\n" not in _run_src)
+check("E119 the sweep reads the ledger's SUBMITTED opens",
+      "_submitted_credits(ledger.entries())" in _sweep)
+check("E119 and chooses per structure through entry_credit_for",
+      "_entry_credit_for(ssym, basis_credit, _subm)" in _sweep)
+check("E119 the ledger is read BEFORE any structure is priced",
+      _sweep.index("_submitted_credits(ledger.entries())") < _sweep.index("_entry_credit_for("))
+check("E119 an unreadable ledger is recorded and the sweep carries on",
+      "submitted_credits_unreadable" in _sweep and "_subm = {}" in _sweep)
+check("E119 a ledger without entries() (a test double) does not crash the sweep",
+      'hasattr(ledger, "entries")' in _sweep)
+check("E119 every Managed record carries its credit source",
+      "entry_credit_source=_src" in _sweep)
+check("E119 the source of every structure's credit is written each cycle",
+      '"action": "sweep_credit"' in _sweep and '"structures": _credit_rows' in _sweep)
+check("E119 and cost-basis fallbacks are named on that record",
+      '"fallbacks":' in _sweep and "CREDIT_SOURCE_SUBMITTED" in _sweep)
+_e118 = _run_src.split("# E118:")[1].split("def _closer")[0]
+check("E119 the E118 healer records the source of the credit it priced from",
+      '"entry_credit_source": _m.entry_credit_source' in _e118)
+check("E119 and passes it into place_exit",
+      "entry_credit_source=_m.entry_credit_source" in _e118)
+_entry = _run_src.split("E5/E15: the exit is placed AT ENTRY")[1][:900]
+check("E119 the entry path tags its exit as priced from the submitted limit",
+      "entry_credit_source=CREDIT_SOURCE_SUBMITTED" in _entry)
+check("E83 still holds: no new assignment to `now`",
+      len(re.findall(r"^\s+now = ", _run_src, re.M)) == 1)
+
 print(f"\n{'='*52}\n  {passed} passed, {failed} failed\n{'='*52}")
 sys.exit(1 if failed else 0)

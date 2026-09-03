@@ -19,7 +19,7 @@ from deltax.reconcile import reconcile, safe_to_open
 from deltax import report
 from deltax import news_gate
 from deltax import gamma as gamma_mod
-from deltax.manage import manage, Managed
+from deltax.manage import manage, Managed, CREDIT_SOURCE_SUBMITTED
 from deltax import blocklist
 from deltax.feeds import AlpacaFeed
 from deltax.ledger import Ledger
@@ -176,6 +176,27 @@ def run(feed, ledger, *, equity: float, today: date, dry_run: bool = True,
         # give-back is always zero.
         from deltax.manage import load_peaks as _load_peaks, update_peaks as _update_peaks
         _peaks = _load_peaks()
+        # E119: the credit every exit is priced from. The broker's per-leg
+        # avg_entry_price does not sum to the multi-leg net that filled - on
+        # 3 Sep the UNH 390/380 put spread was submitted at 1.83 and the legs
+        # say 1.77; the QCOM 175/180 call spread was submitted at 0.86 and the
+        # legs say 0.61. `credit = se - le` below was built from those legs,
+        # so the E118 healer rested the QCOM exit at 0.31 instead of 0.43 and
+        # the E102/E109 trail measured `captured` against a credit 29% too
+        # small. A credit-limit mleg order cannot fill BELOW its limit, so the
+        # SUBMITTED limit in the ledger is the floor of the true fill and wins
+        # whenever it exists. Cost basis is the fallback, recorded as such.
+        from deltax.manage import (submitted_credits as _submitted_credits,
+                                   entry_credit_for as _entry_credit_for)
+        try:
+            _subm = (_submitted_credits(ledger.entries())
+                     if hasattr(ledger, "entries") else {})
+        except Exception as _le:
+            _subm = {}
+            ledger.record_raw({"action": "submitted_credits_unreadable",
+                               "error": f"{type(_le).__name__}: {str(_le)[:120]}",
+                               "consequence": "every structure is priced from "
+                                              "cost-basis credit this cycle"})
         legs = {}
         for p_ in feed.positions():
             sym = p_.get("symbol", "")
@@ -206,12 +227,15 @@ def run(feed, ledger, *, equity: float, today: date, dry_run: bool = True,
             legs.setdefault(key, {})[side] = (abs(q), entry, mark, sym)
 
         live = []
+        _credit_rows = []                   # E119: provenance, one row per structure
         for (und, right, exp), v in legs.items():
             if "short" not in v:
                 continue                          # a long-only leg carries no credit
             sq, se, sm, ssym = v["short"]
             lq, le, lm, _ = v.get("long", (sq, 0.0, 0.0, None))
-            credit = se - le
+            basis_credit = se - le
+            # E119: submitted limit when the ledger has one, else cost basis
+            credit, _src, _src_detail = _entry_credit_for(ssym, basis_credit, _subm)
             # E83: this was `now = sm - lm`, which SHADOWED the cycle's UTC
             # timestamp (set once at the top of run) with the spread's current
             # mark - a float. Every later use of `now` then operated on a
@@ -246,7 +270,19 @@ def run(feed, ledger, *, equity: float, today: date, dry_run: bool = True,
                                 current=mark_now if mark_now > 0 else None,
                                 dte=d,
                                 # E102: the high-water mark from previous cycles
-                                peak_captured=_peaks.get(ssym)))
+                                peak_captured=_peaks.get(ssym),
+                                # E119: never silent about which credit this is
+                                entry_credit_source=_src))
+            _credit_rows.append({"symbol": ssym, "qty": min(sq, lq),
+                                 "credit": round(credit, 2), "source": _src,
+                                 **_src_detail})
+        if _credit_rows:
+            # E119: written every cycle so the number the trail and the healer
+            # act on is auditable, and a cost-basis fallback is named, not
+            # buried in a per-leg price nobody reads.
+            ledger.record_raw({"action": "sweep_credit", "structures": _credit_rows,
+                               "fallbacks": [r["symbol"] for r in _credit_rows
+                                             if r["source"] != CREDIT_SOURCE_SUBMITTED]})
         if live:
             # E78: give the sweep a real closer. Without one it reported closes
             # it never made. Marketable-limit at the current mark plus a small
@@ -291,6 +327,7 @@ def run(feed, ledger, *, equity: float, today: date, dry_run: bool = True,
                     _lsym = _v.get("long", (0, 0, 0.0, None))[3]
                     _rec = {"action": "exit_healed", "symbol": _m.symbol,
                             "qty": _m.qty, "entry_credit": round(_m.entry_credit, 2),
+                            "entry_credit_source": _m.entry_credit_source,   # E119
                             "reason": "E118: no resting *_to_close order found"}
                     if not _lsym:
                         _rec["result"] = "REFUSED — no long leg, will not rest a naked close"
@@ -298,7 +335,8 @@ def run(feed, ledger, *, equity: float, today: date, dry_run: bool = True,
                         _ex = place_exit([execute.Leg(_m.symbol, "sell", 1),
                                           execute.Leg(_lsym, "buy", 1)],
                                          _m.qty, _m.entry_credit,
-                                         ledger=ledger, dry_run=dry_run)
+                                         ledger=ledger, dry_run=dry_run,
+                                         entry_credit_source=_m.entry_credit_source)
                         _rec["limit_price"] = _ex.get("limit_price")
                         _rec["result"] = _ex.get("result")
                     ledger.record_raw(_rec)
@@ -954,7 +992,9 @@ def run(feed, ledger, *, equity: float, today: date, dry_run: bool = True,
             # exit — and the 50% close is where the measured edge lives.
             if str(rec.get("result", "")).startswith(("SUBMITTED", "DRY_RUN")):
                 ex = place_exit(legs, qty, cand["credit"],
-                                ledger=ledger, dry_run=dry_run)
+                                ledger=ledger, dry_run=dry_run,
+                                # E119: this IS the submitted limit
+                                entry_credit_source=CREDIT_SOURCE_SUBMITTED)
                 exits_placed.append((symbol, side, ex.get("limit_price")))
             # Risk actually committed follows the CAPPED size, not the sized
             # quantity, or the book would reserve budget it never spent.

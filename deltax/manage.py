@@ -91,6 +91,12 @@ class Managed:
     # in from state. Each cycle is a fresh process, so a peak held only in memory
     # would reset every five minutes and the trail could never trigger.
     peak_captured: Optional[float] = None
+    # E119: WHERE entry_credit came from. The broker's per-leg avg_entry_price
+    # does not sum to the multi-leg net that actually filled, so every exit
+    # priced from it is priced from a number nobody submitted. The source is
+    # carried on the record and written to every ledger event that derives
+    # from it, so a cost-basis fallback can never pass for a real fill.
+    entry_credit_source: str = "unspecified"
 
     @property
     def captured(self) -> Optional[float]:
@@ -128,8 +134,131 @@ def exit_limit(entry_credit: float) -> float:
     return round(entry_credit * (1.0 - TAKE_PROFIT_FRACTION), 2)
 
 
+# ── E119: the credit an exit is priced from ──────────────────────────────────
+# Alpaca paper allocates per-leg fill prices that do NOT sum to the multi-leg
+# net. Measured 3 Sep: the UNH 390/380 put spread was submitted and filled at
+# a 1.83 net credit limit, but the legs report 3.70 and 1.93 (1.77); the QCOM
+# 175/180 call spread was submitted at 0.86 and the legs report 1.61 and 1.00
+# (0.61). The sweep built `credit = short_entry - long_entry` from those legs,
+# so the E118 healer rested the QCOM exit at 0.31 (50% of 0.61) instead of
+# 0.43, and the E102/E109 trail measured `captured` against a credit 29%
+# too small, so it armed late or never.
+#
+# A credit-limit mleg order cannot fill BELOW its limit, so the submitted
+# limit is the floor of the true fill and the only number in the system that
+# was actually agreed with the broker. When the ledger holds a `submit`
+# record with result SUBMITTED for the structure's short leg, that limit is
+# the entry credit. Cost basis is the fallback only, and is recorded as such.
+CREDIT_SOURCE_SUBMITTED = "submitted_limit"     # ledger submit, result SUBMITTED
+CREDIT_SOURCE_BASIS = "cost_basis"              # broker per-leg avg_entry_price
+
+
+def _credit_vertical_short(legs: list) -> Optional[str]:
+    """The short leg's OCC symbol if `legs` is a two-leg CREDIT vertical.
+
+    A credit vertical sells the strike nearer the money: put spread short
+    strike > long strike, call spread short strike < long strike. Anything
+    else - a debit vertical (the E58 catalyst book), a condor submitted as
+    four legs, a single leg, an unparseable symbol - returns None, so its
+    limit can never be mistaken for a credit.
+    """
+    from deltax.reconcile import parse_occ
+    if not isinstance(legs, list) or len(legs) != 2:
+        return None
+    short = long = None
+    for leg in legs:
+        if not isinstance(leg, dict):
+            return None
+        intent = str(leg.get("position_intent") or "")
+        side = str(leg.get("side") or "")
+        occ = parse_occ(str(leg.get("symbol") or ""))
+        if occ is None:
+            return None
+        if intent == "sell_to_open" or (not intent and side == "sell"):
+            short = (leg["symbol"], occ)
+        elif intent == "buy_to_open" or (not intent and side == "buy"):
+            long = (leg["symbol"], occ)
+        else:
+            return None                     # a *_to_close leg: not an open
+    if short is None or long is None:
+        return None
+    so, lo = short[1], long[1]
+    if (so["underlying"], so["expiry"], so["right"]) != (
+            lo["underlying"], lo["expiry"], lo["right"]):
+        return None
+    if so["right"] == "put" and so["strike"] > lo["strike"]:
+        return short[0]
+    if so["right"] == "call" and so["strike"] < lo["strike"]:
+        return short[0]
+    return None
+
+
+def submitted_credits(entries) -> dict:
+    """short-leg OCC symbol -> the SUBMITTED opening credit for that structure.
+
+    Walks ledger entries (the dicts Ledger.entries() returns) and keeps, per
+    short leg, the LATEST `submit` event whose result is SUBMITTED and whose
+    legs form a credit vertical. Dry runs, refusals, failures and closing
+    orders are ignored: only an order the broker accepted can have filled.
+    Latest wins so a structure re-opened after a close is priced from its
+    own entry, not an earlier one. Never raises on a malformed entry - an
+    unreadable record is simply not evidence.
+    """
+    out: dict = {}
+    for i, e in enumerate(entries or []):
+        try:
+            if not isinstance(e, dict) or e.get("kind") != "event":
+                continue
+            ev = e.get("event") or {}
+            if ev.get("action") != "submit" or ev.get("result") != "SUBMITTED":
+                continue
+            limit = float(ev.get("limit_price"))
+            if not limit > 0:
+                continue
+            short = _credit_vertical_short(ev.get("legs") or [])
+            if short is None:
+                continue
+            seq = e.get("seq")
+            order = float(seq) if isinstance(seq, (int, float)) else float(i)
+            prev = out.get(short)
+            if prev is not None and prev["_order"] > order:
+                continue
+            out[short] = {"credit": round(limit, 2), "order_id": ev.get("order_id"),
+                          "ledger_seq": seq, "qty": ev.get("qty"),
+                          "ts_utc": e.get("ts_utc"), "_order": order}
+        except (TypeError, ValueError, AttributeError):
+            continue
+    for v in out.values():
+        v.pop("_order", None)
+    return out
+
+
+def entry_credit_for(short_symbol: str, basis_credit: float,
+                     submitted: Optional[dict]) -> tuple:
+    """(credit, source, detail) for one structure.
+
+    The submitted limit wins whenever the ledger has one. Cost basis is the
+    fallback for a structure the agent has no submit record for - opened by
+    hand, or before the ledger existed - and the detail says so in words.
+    """
+    rec = (submitted or {}).get(short_symbol)
+    basis = round(float(basis_credit), 2)
+    if rec is not None:
+        return (float(rec["credit"]), CREDIT_SOURCE_SUBMITTED,
+                {"submitted_limit": float(rec["credit"]),
+                 "cost_basis_credit": basis,
+                 "order_id": rec.get("order_id"),
+                 "ledger_seq": rec.get("ledger_seq")})
+    return (float(basis_credit), CREDIT_SOURCE_BASIS,
+            {"cost_basis_credit": basis,
+             "note": "no SUBMITTED open in the ledger for this short leg; "
+                     "credit is the broker's per-leg allocation, which does "
+                     "not sum to the multi-leg fill (E119)"})
+
+
 def place_exit(legs: list, qty: int, entry_credit: float, *, ledger=None,
-               dry_run: bool = True) -> dict:
+               dry_run: bool = True,
+               entry_credit_source: Optional[str] = None) -> dict:
     """Rest a GTC closing order the moment a position is opened (E5).
 
     Placed at entry, not watched for later: an exit that depends on the agent
@@ -139,6 +268,8 @@ def place_exit(legs: list, qty: int, entry_credit: float, *, ledger=None,
     args = execute.build_close_args(legs, qty, limit)
     record = {"action": "exit_order", "qty": qty, "limit_price": limit,
               "entry_credit": round(entry_credit, 2),
+              # E119: which number the limit was derived from - never silent
+              "entry_credit_source": entry_credit_source or "unspecified",
               "target_fraction": TAKE_PROFIT_FRACTION,
               "command": "alpaca " + " ".join(args), "dry_run": dry_run}
     if dry_run:
@@ -182,7 +313,11 @@ def manage(positions: list, *, ledger=None, dry_run: bool = True,
             held.append(p.symbol)
             continue
         rec = {"action": "close", "symbol": p.symbol, "qty": p.qty,
-               "reason": why, "captured": round(p.captured, 4), "dry_run": dry_run}
+               "reason": why, "captured": round(p.captured, 4),
+               # E119: `captured` is a fraction OF this credit; say which one
+               "entry_credit": round(p.entry_credit, 2),
+               "entry_credit_source": p.entry_credit_source,
+               "dry_run": dry_run}
         if dry_run:
             # E116: a dry run used to skip the closer entirely, so no dry run
             # could ever exercise the exit path - the trail's replace logic was
