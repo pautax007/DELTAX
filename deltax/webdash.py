@@ -103,12 +103,18 @@ def _tz_times():
     try:
         # %-I drops the leading zero (9:05 AM, not 09:05 AM); lower-cased so it
         # reads as a time rather than shouting inside a row of capitalised pills.
-        return {k: _dt.now(ZoneInfo(z)).strftime("%-I:%M %p").lower()
-                for k, z in (("us", "America/New_York"),
-                             ("lv", "Europe/Riga"),
-                             ("dk", "Europe/Copenhagen"))}
+        out = {k: _dt.now(ZoneInfo(z)).strftime("%-I:%M %p").lower()
+               for k, z in (("us", "America/New_York"),
+                            ("lv", "Europe/Riga"),
+                            ("dk", "Europe/Copenhagen"))}
+        # Calendar date, ET - the timezone the contest deadline is stated in.
+        # Read off the board rather than inferred from the equity chart, which
+        # only ever showed the contest week and not what day it actually is.
+        out["date"] = _dt.now(ZoneInfo("America/New_York")).strftime(
+            "%a %-d %b").upper()
+        return out
     except Exception:
-        return {"us": "", "lv": "", "dk": ""}
+        return {"us": "", "lv": "", "dk": "", "date": ""}
 
 
 def _equity_chart(history=None):
@@ -1173,9 +1179,10 @@ td.bar span{{display:block;height:6px;background:linear-gradient(90deg,var(--bl)
 </div>
 <div class="pills">
   <span class="pill on">TEAM SYNC BOARD</span>
+  <span class="pill on">{_tz["date"]}</span>
   <a class="pill" href="presentation.html" style="text-decoration:none">📊 PRESENTATION</a>
   <span class="pill">US {_tz["us"]}</span><span class="pill">LATVIA {_tz["lv"]}</span><span class="pill">DENMARK {_tz["dk"]}</span>
-  <span class="pill">ALPACA PAPER</span><span class="pill">754 TESTS</span><span class="pill">MIT</span>
+  <span class="pill">ALPACA PAPER</span><span class="pill">{_tc_n.replace(" PASS", "")} TESTS</span><span class="pill">MIT</span>
 </div>
 {standdown}
 {warn}
