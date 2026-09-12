@@ -222,29 +222,181 @@ td.bar span{display:block;height:6px;background:linear-gradient(90deg,var(--bl),
   <span class="pill on">TEAM SYNC BOARD</span>
   <span class="pill on">SAT 12 SEP</span>
   <a class="pill" href="presentation.html" style="text-decoration:none">📊 PRESENTATION</a>
-  <span class="pill">US 1:27 pm</span><span class="pill">LATVIA 8:27 pm</span><span class="pill">DENMARK 7:27 pm</span>
+  <span class="pill">US 1:30 pm</span><span class="pill">LATVIA 8:30 pm</span><span class="pill">DENMARK 7:30 pm</span>
   <span class="pill">ALPACA PAPER</span><span class="pill">990 TESTS</span><span class="pill">MIT</span>
 </div>
 
-<div class="warn">LIVE ACCOUNT UNREADABLE — 3 attempts failed - alpaca account get --quiet -> {
-  "code": 0,
-  "error": "could not reach https://paper-api. Figures omitted rather than estimated.</div>
+
 <div class="pnl">
   <div><span class="pnl-k">ACCOUNT VALUE</span>
-    <span class="pnl-v">unavailable</span></div>
+    <span class="pnl-v">$92,610</span></div>
   <div><span class="pnl-k">TODAY</span>
-    <span class="pnl-d up">&mdash;<span
-      class="pnl-p">&mdash;</span></span>
+    <span class="pnl-d down">-296.00<span
+      class="pnl-p">-0.32%</span></span>
     <span class="pnl-n">vs yesterday&rsquo;s close &middot; matches Alpaca&rsquo;s &ldquo;Today&rdquo;</span></div>
-  <div><span class="pnl-k">PROFIT SINCE START</span>
-    <span class="pnl-d up">unavailable<span
-      class="pnl-p">&mdash;</span></span>
+  <div><span class="pnl-k">LOSS SINCE START</span>
+    <span class="pnl-d down">-7,389.72<span
+      class="pnl-p">-7.39%</span></span>
     <span class="pnl-n">vs the $100,000 start &middot; the contest number</span></div>
   <div class="mkt "><span class="mkt-dot"></span>
     <span class="mkt-s">MARKET CLOSED</span>
     <span class="mkt-d">weekend &middot; opens Monday 9:30 am</span></div>
 </div>
+<div class="eqc" id="eqc">
+<div class="eqc-hd">
+  <span>EQUITY <b class="eqc-rl">1W</b></span>
+  <b id="eqc-v">&mdash;</b>
+</div>
+<div class="eqc-sub"><span id="eqc-when">&nbsp;</span>
+  <span id="eqc-base">&nbsp;</span></div>
+<svg viewBox="0 0 1000 168" preserveAspectRatio="none" class="eqc-svg"
+     id="eqc-svg" role="img"
+     aria-label="Account equity over a selectable time range, against the
+     100,000 dollar starting balance.">
+  <defs><linearGradient id="eqfill" x1="0" y1="0" x2="0" y2="1">
+    <stop id="eqf0" offset="0%" stop-opacity=".26"/>
+    <stop id="eqf1" offset="100%" stop-opacity="0"/>
+  </linearGradient></defs>
+  <g id="eqc-grid"></g>
+  <line id="eqc-baseline" stroke="#5B807D" stroke-width="1"
+        stroke-dasharray="3 4"/>
+  <text id="eqc-baselbl" fill="#5B807D" font-size="8.5"
+        text-anchor="end">100k</text>
+  <path id="eqc-area" fill="url(#eqfill)"/>
+  <path id="eqc-line" fill="none" stroke-width="2" stroke-linejoin="round"
+        stroke-linecap="round"/>
+  <line id="eqc-cross" stroke="#5B807D" stroke-width="1" opacity="0"/>
+  <circle id="eqc-dot" r="4"/>
+  <circle id="eqc-halo" r="8" fill-opacity=".18"/>
+</svg>
+<div class="eqc-rs"><button class="eqc-b" data-r="1D">1D</button><button class="eqc-b on" data-r="1W">1W</button><button class="eqc-b" data-r="1M">1M</button><button class="eqc-b" data-r="ALL">ALL</button></div>
+</div>
+<script>
+(function(){
+  var D = {"1D":[[1789133400,97733.59],[1789133700,97733.59],[1789134000,99849.59],[1789134300,101653.59],[1789134600,100722.59],[1789134900,100796.59],[1789135200,99687.59],[1789135500,98232.59],[1789135800,98522.59],[1789136100,97826.59],[1789136400,97344.59],[1789136700,97371.59],[1789137000,98302.33],[1789137300,97819.33],[1789137600,98442.33],[1789137900,98942.33],[1789138200,98487.33],[1789138500,97147.33],[1789138800,96748.73],[1789139100,95698.73],[1789139400,96305.53],[1789139700,96010.53],[1789140000,96512.89],[1789140300,96943.89],[1789140600,97578.89],[1789140900,98297.89],[1789141200,98024.89],[1789141500,98216.89],[1789141800,97366.69],[1789142100,96590.09],[1789142400,95748.03],[1789142700,96584.79],[1789143000,96023.79],[1789143300,96542.79],[1789143600,97224.79],[1789143900,95253.79],[1789144200,96082.79],[1789144500,95450.79],[1789144800,95064.79],[1789145100,95730.79],[1789145400,95107.79],[1789145700,94792.79],[1789146000,94929.79],[1789146300,95247.79],[1789146600,95585.79],[1789146900,95679.79],[1789147200,95634.79],[1789147500,95779.79],[1789147800,96867.79],[1789148100,97044.79],[1789148400,97169.79],[1789148700,96418.79],[1789149000,95917.79],[1789149300,96037.79],[1789149600,96138.79],[1789149900,95862.79],[1789150200,95618.79],[1789150500,94985.79],[1789150800,95429.79],[1789151100,95181.79],[1789151400,94853.79],[1789151700,95162.79],[1789152000,95510.79],[1789152300,95813.79],[1789152600,96574.79],[1789152900,96325.79],[1789153200,95398.79],[1789153500,94442.79],[1789153800,94594.79],[1789154100,94015.79],[1789154400,94219.79],[1789154700,94263.79],[1789155000,94518.79],[1789155300,94197.71],[1789155600,93676.71],[1789155900,93333.71],[1789156200,93132.71],[1789156500,92811.71],[1789156800,92868.71]],"1W":[[1788528600,98698.47],[1788532200,98076.59],[1788535800,98123.59],[1788539400,97355.59],[1788543000,97582.59],[1788546600,97658.59],[1788550200,97661.59],[1788874200,100978.81],[1788877800,100671.37],[1788881400,99303.37],[1788885000,99049.55],[1788888600,97849.55],[1788892200,97856.55],[1788895800,97895.55],[1788960600,101338.61],[1788964200,98943.61],[1788967800,96559.61],[1788971400,96224.35],[1788975000,96031.69],[1788978600,96425.69],[1788982200,95579.69],[1789047000,92232.04],[1789050600,93236.78],[1789054200,93510.78],[1789057800,93735.78],[1789061400,93879.78],[1789065000,92529.78],[1789068600,93421.78],[1789133400,101604.59],[1789137000,98356.33],[1789140600,97600.89],[1789144200,96076.79],[1789147800,96096.79],[1789151400,95313.79],[1789155000,94506.79]],"1M":[[1787961600,100000.0],[1788220800,100000.0],[1788307200,100000.0],[1788393600,99567.72],[1788480000,97587.47],[1788566400,98083.81],[1788912000,97402.61],[1788998400,96087.04],[1789084800,93311.59],[1789171200,92906.28]],"ALL":[[1787961600,100000.0],[1788220800,100000.0],[1788307200,100000.0],[1788393600,99567.72],[1788480000,97587.47],[1788566400,98083.81],[1788912000,97402.61],[1788998400,96087.04],[1789084800,93311.59],[1789171200,92906.28]]};
+  var BASE = 100000, W = 1000, H = 168,
+      PL = 52, PR = 22, PT = 16, PB = 22;
+  var UP = "#3FE0DA", DN = "#FF8A8A", MUTE = "#5B807D";
+  var svg = document.getElementById("eqc-svg");
+  var cur = '1W';
 
+  function money(n){
+    return "$" + n.toLocaleString("en-US",{minimumFractionDigits:0,
+                                           maximumFractionDigits:0});
+  }
+  function stamp(ts, range){
+    var d = new Date(ts*1000);
+    var o = (range === "1D")
+      ? {hour:"numeric", minute:"2-digit", timeZone:"America/New_York"}
+      : {month:"short", day:"numeric", timeZone:"America/New_York"};
+    return d.toLocaleString("en-US", o);
+  }
+
+  function draw(range, hoverIdx){
+    var pts = D[range]; if(!pts || pts.length < 2) return;
+    var vals = pts.map(function(p){return p[1];}).concat([BASE]);
+    var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
+    var pad = Math.max((hi-lo)*0.35, 120); lo -= pad; hi += pad;
+    var n = pts.length;
+    var X = function(i){ return PL + (i/(n-1))*(W-PL-PR); };
+    var Y = function(v){ return PT + (1-(v-lo)/(hi-lo))*(H-PT-PB); };
+
+    var first = pts[0][1], last = pts[n-1][1];
+    var gain = last - first;
+    var col = gain >= 0 ? UP : DN;
+
+    var dpath = "", apath = "M" + X(0).toFixed(1) + "," + Y(BASE).toFixed(1);
+    for(var i=0;i<n;i++){
+      var x = X(i).toFixed(1), y = Y(pts[i][1]).toFixed(1);
+      dpath += (i?"L":"M") + x + "," + y;
+      apath += "L" + x + "," + y;
+    }
+    apath += "L" + X(n-1).toFixed(1) + "," + Y(BASE).toFixed(1) + "Z";
+
+    document.getElementById("eqc-line").setAttribute("d", dpath);
+    document.getElementById("eqc-line").setAttribute("stroke", col);
+    document.getElementById("eqc-area").setAttribute("d", apath);
+    document.getElementById("eqf0").setAttribute("stop-color", col);
+    document.getElementById("eqf1").setAttribute("stop-color", col);
+
+    var by = Y(BASE).toFixed(1);
+    var bl = document.getElementById("eqc-baseline");
+    bl.setAttribute("x1", PL); bl.setAttribute("x2", W-PR);
+    bl.setAttribute("y1", by); bl.setAttribute("y2", by);
+    var blb = document.getElementById("eqc-baselbl");
+    blb.setAttribute("x", PL-6); blb.setAttribute("y", (+by)+3);
+
+    // vertical gridlines: one per day boundary, or per 2h on 1D
+    var g = "";
+    var prev = null;
+    for(var j=0;j<n;j++){
+      var d = new Date(pts[j][0]*1000);
+      var key = (range === "1D") ? d.getUTCHours() : d.getUTCDate();
+      if(prev !== null && key !== prev){
+        var gx = X(j).toFixed(1);
+        g += '<line x1="'+gx+'" y1="'+PT+'" x2="'+gx+'" y2="'+(H-PB)+
+             '" stroke="#12302E" stroke-width="1"/>';
+      }
+      prev = key;
+    }
+    document.getElementById("eqc-grid").innerHTML = g;
+
+    var idx = (hoverIdx === undefined || hoverIdx === null) ? n-1 : hoverIdx;
+    var hv = pts[idx][1];
+    var dot = document.getElementById("eqc-dot");
+    var halo = document.getElementById("eqc-halo");
+    [dot, halo].forEach(function(el){
+      el.setAttribute("cx", X(idx).toFixed(1));
+      el.setAttribute("cy", Y(hv).toFixed(1));
+      el.setAttribute("fill", col);
+    });
+    var cross = document.getElementById("eqc-cross");
+    cross.setAttribute("x1", X(idx).toFixed(1));
+    cross.setAttribute("x2", X(idx).toFixed(1));
+    cross.setAttribute("y1", PT); cross.setAttribute("y2", H-PB);
+    cross.setAttribute("opacity", hoverIdx == null ? 0 : 0.5);
+
+    var chg = hv - first, pct = first ? (chg/first*100) : 0;
+    var vEl = document.getElementById("eqc-v");
+    vEl.textContent = money(hv) + "   " +
+      (chg>=0?"+":"−") + money(Math.abs(chg)).slice(1) +
+      " (" + (chg>=0?"+":"−") + Math.abs(pct).toFixed(2) + "%)";
+    vEl.className = chg >= 0 ? "ok" : "bad";
+    document.getElementById("eqc-when").textContent =
+      stamp(pts[idx][0], range) + " ET";
+    var vs = hv - BASE;
+    document.getElementById("eqc-base").textContent =
+      (vs>=0?"+":"−") + money(Math.abs(vs)).slice(1) +
+      " vs the $100,000 start";
+  }
+
+  svg.addEventListener("mousemove", function(ev){
+    var pts = D[cur]; if(!pts) return;
+    var r = svg.getBoundingClientRect();
+    var fx = (ev.clientX - r.left) / r.width * W;
+    var t = (fx - PL) / (W - PL - PR);
+    var i = Math.round(t * (pts.length-1));
+    if(i < 0) i = 0; if(i > pts.length-1) i = pts.length-1;
+    draw(cur, i);
+  });
+  svg.addEventListener("mouseleave", function(){ draw(cur, null); });
+
+  Array.prototype.forEach.call(
+    document.querySelectorAll("#eqc .eqc-rs button"), function(b){
+      b.addEventListener("click", function(){
+        cur = b.getAttribute("data-r");
+        Array.prototype.forEach.call(
+          document.querySelectorAll("#eqc .eqc-rs button"), function(o){
+            o.className = "eqc-b" + (o === b ? " on" : "");
+          });
+        document.querySelector("#eqc .eqc-rl").textContent = cur;
+        draw(cur, null);
+      });
+    });
+
+  draw(cur, null);
+})();
+</script>
 <h2>MARKET STRUCTURE</h2><div class="rule"></div><div class="lead">Where price sits against where business was done. POC is the 20-day point of control. The ATR ladder is &minus;2 &middot; &minus;1 &middot; <b>+1</b> &middot; +2 average true ranges from here &mdash; a short strike inside &plusmn;1 is exposed to an ordinary day.</div><div class="tw"><table><tr><th>SYM</th><th class="n">PRICE</th><th class="n">POC 20D</th><th></th><th class="n">PDL &ndash; PDH</th><th class="n">ATR LADDER</th><th class="n">ATR TODAY</th></tr><tr><td class="cy">DIA</td><td class="num">525.79</td><td class="num">528.50</td><td class="dim">&darr; POC</td><td class="num">524.50 &ndash; 527.30</td><td class="num">517.12 &middot; 521.46 &middot; <b>530.12</b> &middot; 534.46</td><td class="num dim">+0.0</td></tr><tr><td class="cy">SPY</td><td class="num">764.22</td><td class="num">764.75</td><td class="dim">&darr; POC</td><td class="num">763.63 &ndash; 766.35</td><td class="num">753.08 &middot; 758.65 &middot; <b>769.79</b> &middot; 775.36</td><td class="num dim">+0.0</td></tr><tr><td class="cy">QQQ</td><td class="num">715.00</td><td class="num">708.25</td><td class="dim">&uarr; POC</td><td class="num">713.69 &ndash; 717.61</td><td class="num">699.58 &middot; 707.29 &middot; <b>722.71</b> &middot; 730.42</td><td class="num dim">+0.0</td></tr><tr><td class="cy">IWM</td><td class="num">289.09</td><td class="num">288.20</td><td class="dim">&uarr; POC</td><td class="num">288.79 &ndash; 291.41</td><td class="num">283.04 &middot; 286.06 &middot; <b>292.12</b> &middot; 295.14</td><td class="num dim">+0.1</td></tr><tr><td class="cy">FXI</td><td class="num">34.49</td><td class="num">35.55</td><td class="dim">&darr; POC</td><td class="num">34.47 &ndash; 34.72</td><td class="num">33.67 &middot; 34.08 &middot; <b>34.90</b> &middot; 35.31</td><td class="num dim">+0.0</td></tr><tr><td class="cy">HYG</td><td class="num">78.61</td><td class="num">79.70</td><td class="dim">&darr; POC</td><td class="num">78.61 &ndash; 78.86</td><td class="num">78.17 &middot; 78.39 &middot; <b>78.84</b> &middot; 79.06</td><td class="num dim">+0.0</td></tr><tr><td class="cy">EEM</td><td class="num">67.83</td><td class="num">67.05</td><td class="dim">&uarr; POC</td><td class="num">67.69 &ndash; 68.03</td><td class="num">66.11 &middot; 66.97 &middot; <b>68.69</b> &middot; 69.55</td><td class="num dim">+0.0</td></tr><tr><td class="cy">AAPL</td><td class="num">332.55</td><td class="num">315.75</td><td class="dim">&uarr; POC</td><td class="num">326.57 &ndash; 336.21</td><td class="num">316.98 &middot; 324.77 &middot; <b>340.33</b> &middot; 348.12</td><td class="num dim">+0.0</td></tr><tr><td class="cy">ORCL</td><td class="num">150.09</td><td class="num">153.80</td><td class="dim">&darr; POC</td><td class="num">149.89 &ndash; 165.90</td><td class="num">135.31 &middot; 142.70 &middot; <b>157.48</b> &middot; 164.87</td><td class="num dim">-0.0</td></tr><tr><td class="cy">JPM</td><td class="num">356.43</td><td class="num">356.50</td><td class="dim">&darr; POC</td><td class="num">354.93 &ndash; 360.00</td><td class="num">345.46 &middot; 350.94 &middot; <b>361.91</b> &middot; 367.39</td><td class="num dim">+0.0</td></tr><tr><td class="cy">RSP</td><td class="num">214.86</td><td class="num">221.70</td><td class="dim">&darr; POC</td><td class="num">214.34 &ndash; 215.32</td><td class="num">211.56 &middot; 213.21 &middot; <b>216.51</b> &middot; 218.16</td><td class="num dim">+0.0</td></tr><tr><td class="cy">XLI</td><td class="num">172.37</td><td class="num">180.40</td><td class="dim">&darr; POC</td><td class="num">171.87 &ndash; 172.91</td><td class="num">167.83 &middot; 170.10 &middot; <b>174.64</b> &middot; 176.91</td><td class="num dim">+0.0</td></tr><tr><td class="cy">XLU</td><td class="num">42.38</td><td class="num">43.10</td><td class="dim">&darr; POC</td><td class="num">42.31 &ndash; 42.94</td><td class="num">41.18 &middot; 41.78 &middot; <b>42.98</b> &middot; 43.59</td><td class="num dim">+0.0</td></tr><tr><td class="cy">TQQQ</td><td class="num">70.98</td><td class="num">72.50</td><td class="dim">&darr; POC</td><td class="num">70.64 &ndash; 71.76</td><td class="num">66.38 &middot; 68.68 &middot; <b>73.28</b> &middot; 75.58</td><td class="num dim">+0.0</td></tr><tr><td class="cy">VXX</td><td class="num">18.08</td><td class="num">18.76</td><td class="dim">&darr; POC</td><td class="num">17.96 &ndash; 18.27</td><td class="num">17.15 &middot; 17.61 &middot; <b>18.55</b> &middot; 19.01</td><td class="num dim">+0.1</td></tr><tr><td class="cy">UNH</td><td class="num">378.87</td><td class="num">390.50</td><td class="dim">&darr; POC</td><td class="num">375.99 &ndash; 391.71</td><td class="num">358.88 &middot; 368.87 &middot; <b>388.86</b> &middot; 398.85</td><td class="num dim">+0.0</td></tr><tr><td class="cy">QCOM</td><td class="num">181.95</td><td class="num">176.40</td><td class="dim">&uarr; POC</td><td class="num">176.33 &ndash; 185.41</td><td class="num">168.89 &middot; 175.42 &middot; <b>188.48</b> &middot; 195.01</td><td class="num dim">+0.0</td></tr><tr><td class="cy">C</td><td class="num">138.78</td><td class="num">132.80</td><td class="dim">&uarr; POC</td><td class="num">137.43 &ndash; 141.17</td><td class="num">133.48 &middot; 136.13 &middot; <b>141.42</b> &middot; 144.07</td><td class="num dim">+0.0</td></tr></table></div>
 <div class="mission">
 <div class="m-hero">
@@ -267,7 +419,7 @@ td.bar span{display:block;height:6px;background:linear-gradient(90deg,var(--bl),
   </div>
   <div>
     <div class="m-k">OPEN RISK</div>
-    <div class="m-big">0<span class="sm">&nbsp;spreads</span></div>
+    <div class="m-big">5<span class="sm">&nbsp;spreads</span></div>
   </div>
 </div>
 <div class="ev-grid" style="margin-top:16px">
@@ -275,13 +427,13 @@ td.bar span{display:block;height:6px;background:linear-gradient(90deg,var(--bl),
   <div><span>CONFIDENCE</span><b class="ok">100%</b><i>of 8,000 simulated paths end higher</i></div>
   <div><span>MARKET</span><b class="ok">RISK_ON</b><i>SPY -1.09%, best haven -1.46%</i></div>
   <div><span>RISK GATES</span><b class="ok">14 ARMED</b><i>20 refused today</i></div>
-  <div><span>ACCOUNT</span><b class="ok">—</b><i>Alpaca paper &middot; 990 PASS tests</i></div>
+  <div><span>ACCOUNT</span><b class="ok">PA397N6FXXIE</b><i>Alpaca paper &middot; 990 PASS tests</i></div>
 </div>
 <div style="display:flex;gap:26px;flex-wrap:wrap;margin-top:16px">
   <div style="flex:1;min-width:260px">
     <div class="m-k">OPEN POSITIONS</div>
     <table><tr><th>NAME</th><th>STRUCTURE</th><th style="text-align:right">P&amp;L</th></tr>
-    <tr><td colspan="3" class="empty">flat &mdash; no open risk</td></tr></table>
+    <tr><td class="cy">C</td><td>1 legs &middot; 0 spread(s)</td><td class="num neg">-540.00</td></tr><tr><td class="cy">QCOM</td><td>1 legs &middot; 0 spread(s)</td><td class="num neg">-1,078.00</td></tr><tr><td class="cy">QQQ</td><td>1 legs &middot; 0 spread(s)</td><td class="num neg">-242.00</td></tr><tr><td class="cy">TQQQ</td><td>1 legs &middot; 0 spread(s)</td><td class="num neg">-1,176.00</td></tr><tr><td class="cy">UNH</td><td>1 legs &middot; 0 spread(s)</td><td class="num pos">+3,102.00</td></tr><tr><td class="cy">QCOM</td><td>900 shares &middot; rotation</td><td class="num pos">+873.00</td></tr></table>
   </div>
   <div style="flex:1;min-width:220px">
     <div class="m-k">SECTOR STRENGTH vs SPY</div>
@@ -310,7 +462,7 @@ td.bar span{display:block;height:6px;background:linear-gradient(90deg,var(--bl),
 </details>
 </div>
 
-<div class="stats"><div class="stat "><div class="k">COMMITTED RISK</div><div class="v">$0</div><div class="n">worst case if every spread loses · $30,000 cap</div></div><div class="stat "><div class="k">CASH</div><div class="v">unavailable</div><div class="n">uncommitted</div></div><div class="stat "><div class="k">OPEN POSITIONS</div><div class="v">0</div><div class="n">flat</div></div><div class="stat "><div class="k">DECISIONS</div><div class="v">1267</div><div class="n">1149 refused · 91% of candidates</div></div></div>
+<div class="stats"><div class="stat "><div class="k">COMMITTED RISK</div><div class="v">$162,900</div><div class="n">worst case if every spread loses · $30,000 cap</div></div><div class="stat "><div class="k">CASH</div><div class="v">$-77,069</div><div class="n">uncommitted</div></div><div class="stat "><div class="k">OPEN POSITIONS</div><div class="v">3</div><div class="n">6 legs · 3 spread(s)</div></div><div class="stat "><div class="k">DECISIONS</div><div class="v">1267</div><div class="n">1149 refused · 91% of candidates</div></div></div>
 
 <h2>WHY THE AGENT SAID NO</h2><div class="rule"></div>
 <div class="lead">Every evaluation is recorded — approvals and refusals alike — in a
@@ -329,7 +481,7 @@ the stock stays in range.</div>
 <div class="tw"><table>
 <tr><th>STOCK</th><th>WHAT WE DID</th><th class="n">SIZE</th>
 <th class="n">MONEY IN</th><th class="n">MAX LOSS</th><th class="n">P&amp;L NOW</th></tr>
-<tr><td colspan="6" class="empty">No positions open. The agent is holding cash.</td></tr></table></div>
+<tr><td colspan="6" class="empty">Positions open but not recognised as spreads — see the terminal below.</td></tr></table></div>
 
 <div class="two">
 <div>
@@ -413,7 +565,7 @@ Retrieved 1&ndash;2 Sep 2026 unless noted.</div>
 <div class="lead">Probed live at every page generation. Per the corpus, news can
 veto a trade, never originate one — a stale feed is disarmed, not trusted.</div>
 <table><tr><th>FEED</th><th>BUCKET</th><th style="text-align:right">ITEMS</th>
-<th>FRESHNESS</th><th>STATUS</th></tr><tr><td class="cy">cnbc_finance</td><td>equities</td><td class="num">30</td><td>newest 4.6h ago</td><td><span class="pill gd">● LIVE</span></td></tr><tr><td class="cy">cnbc_markets</td><td>equities</td><td class="num">30</td><td>newest 4.6h ago</td><td><span class="pill gd">● LIVE</span></td></tr><tr><td class="cy">ft_markets</td><td>macro</td><td class="num">25</td><td>newest 6.6h ago</td><td><span class="pill gd">● LIVE</span></td></tr><tr><td class="cy">investing_news</td><td>equities</td><td class="num">10</td><td>newest 1.4h ago</td><td><span class="pill gd">● LIVE</span></td></tr><tr><td class="cy">marketwatch_top</td><td>equities</td><td class="num">10</td><td>newest 0.1h ago</td><td><span class="pill gd">● LIVE</span></td></tr><tr><td class="cy">nasdaq_markets</td><td>equities</td><td class="num">15</td><td>newest 0.6h ago</td><td><span class="pill gd">● LIVE</span></td></tr><tr><td class="cy">seeking_alpha</td><td>equities</td><td class="num">7</td><td>newest 1.5h ago</td><td><span class="pill gd">● LIVE</span></td></tr><tr><td class="cy">yahoo_finance</td><td>equities</td><td class="num">50</td><td>newest 0.3h ago</td><td><span class="pill gd">● LIVE</span></td></tr><tr><td class="cy">coindesk</td><td>crypto</td><td class="num">—</td><td>URLError</td><td><span class="pill rd">● ERROR</span></td></tr><tr><td class="cy">oilprice</td><td>macro</td><td class="num">—</td><td>URLError</td><td><span class="pill rd">● ERROR</span></td></tr><tr><td class="cy">wsj_markets</td><td>equities</td><td class="num">—</td><td>URLError</td><td><span class="pill rd">● ERROR</span></td></tr><tr><td class="cy">sec_8k</td><td>equities</td><td class="num">—</td><td>per-symbol (earnings gate)</td><td><span class="pill" style="color:#5B807D">SEC 8-K</span></td></tr></table>
+<th>FRESHNESS</th><th>STATUS</th></tr><tr><td class="cy">cnbc_finance</td><td>equities</td><td class="num">30</td><td>newest 4.7h ago</td><td><span class="pill gd">● LIVE</span></td></tr><tr><td class="cy">cnbc_markets</td><td>equities</td><td class="num">30</td><td>newest 4.7h ago</td><td><span class="pill gd">● LIVE</span></td></tr><tr><td class="cy">coindesk</td><td>crypto</td><td class="num">25</td><td>newest 1.5h ago</td><td><span class="pill gd">● LIVE</span></td></tr><tr><td class="cy">ft_markets</td><td>macro</td><td class="num">25</td><td>newest 1.2h ago</td><td><span class="pill gd">● LIVE</span></td></tr><tr><td class="cy">investing_news</td><td>equities</td><td class="num">10</td><td>newest 1.4h ago</td><td><span class="pill gd">● LIVE</span></td></tr><tr><td class="cy">marketwatch_top</td><td>equities</td><td class="num">10</td><td>newest 0.2h ago</td><td><span class="pill gd">● LIVE</span></td></tr><tr><td class="cy">nasdaq_markets</td><td>equities</td><td class="num">15</td><td>newest 0.7h ago</td><td><span class="pill gd">● LIVE</span></td></tr><tr><td class="cy">oilprice</td><td>macro</td><td class="num">15</td><td>newest 0.5h ago</td><td><span class="pill gd">● LIVE</span></td></tr><tr><td class="cy">seeking_alpha</td><td>equities</td><td class="num">7</td><td>newest 1.5h ago</td><td><span class="pill gd">● LIVE</span></td></tr><tr><td class="cy">yahoo_finance</td><td>equities</td><td class="num">50</td><td>newest 0.3h ago</td><td><span class="pill gd">● LIVE</span></td></tr><tr><td class="cy">wsj_markets</td><td>equities</td><td class="num">20</td><td>newest 14230.1h ago</td><td><span class="pill" style="color:#F0C674">● STALE</span></td></tr><tr><td class="cy">sec_8k</td><td>equities</td><td class="num">—</td><td>per-symbol (earnings gate)</td><td><span class="pill" style="color:#5B807D">SEC 8-K</span></td></tr></table>
 
 <h2>1 SEP — WHAT THE AGENT REFUSED, AND WHY</h2><div class="rule"></div>
 <div class="lead" style="margin-bottom:12px">The tape sold off through the
@@ -544,7 +696,7 @@ Nothing summarised, nothing hidden. Refreshes with the page.</div>
 </div>
 
 <div class="foot">
-GENERATED 2026-09-12 17:27 UTC &nbsp;·&nbsp; REFRESHED EVERY 5 MIN BY A SCHEDULED JOB
-&nbsp;·&nbsp; PAPER TRADING ONLY — NO REAL CAPITAL &nbsp;·&nbsp; ACCOUNT —
+GENERATED 2026-09-12 17:30 UTC &nbsp;·&nbsp; REFRESHED EVERY 5 MIN BY A SCHEDULED JOB
+&nbsp;·&nbsp; PAPER TRADING ONLY — NO REAL CAPITAL &nbsp;·&nbsp; ACCOUNT PA397N6FXXIE
 </div>
 </div>
